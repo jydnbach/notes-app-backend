@@ -6,7 +6,9 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "node --watch index.js",
-    "start": "node index.js"
+    "start": "node index.js",
+    "build:ui": "rm -rf dist && cd ../Part\\ 2/lecture && npm run build && cp -r dist ../Part\\ 3/dist",
+    "deploy:full": "npm run build:ui && git add . && git commit -m uibuild && git push"
   },
   "author": "",
   "license": "ISC",
