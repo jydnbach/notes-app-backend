@@ -1,9 +1,8 @@
 const express = require('express');
 const app = express();
 // const cors = require('cors');
+// // app.use(cors());
 
-// app.use(cors());
-app.use(express.json());
 app.use(express.static('dist'));
 
 let notes = [
@@ -24,6 +23,21 @@ let notes = [
   },
 ];
 
+const requestLogger = (request, response, next) => {
+  console.log('Method:', request.method);
+  console.log('Path:', request.path);
+  console.log('Method:', request.body);
+  console.log('---');
+  next();
+};
+
+app.use(express.json());
+app.use(requestLogger());
+
+const unknownEndpoint = (request, resonse) => {
+  response.status(404).send({ error: 'unkown endpoint' });
+};
+
 app.get('/', (request, response) => {
   response.send('<h1>Hello world</h1>');
 });
@@ -43,12 +57,6 @@ app.get('/api/notes/:id', (request, response) => {
   }
 });
 
-app.delete('/api/notes/:id', (req, res) => {
-  const id = req.params.id;
-  notes = notes.filter((note) => note.id !== id);
-  res.status(204).end();
-});
-
 app.post('/api/notes', (request, response) => {
   const maxId =
     notes.length > 0 ? Math.max(...notes.map((n) => Number(n.id))) : 0;
@@ -61,10 +69,18 @@ app.post('/api/notes', (request, response) => {
   response.json(note);
 });
 
+app.delete('/api/notes/:id', (req, res) => {
+  const id = req.params.id;
+  notes = notes.filter((note) => note.id !== id);
+  res.status(204).end();
+});
+
 // const app = http.createServer((request, response) => {
 //   response.writeHead(200, { 'Content-Type': 'application/json' });
 //   response.end(JSON.stringify(notes));
 // });
+
+app.use(unknownEndpoint);
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
