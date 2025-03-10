@@ -32,7 +32,7 @@ const requestLogger = (request, response, next) => {
 };
 
 app.use(express.json());
-app.use(requestLogger());
+app.use(requestLogger);
 
 const unknownEndpoint = (request, resonse) => {
   response.status(404).send({ error: 'unkown endpoint' });
