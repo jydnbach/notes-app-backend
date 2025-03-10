@@ -52,27 +52,27 @@ app.get('/api/notes', (request, response) => {
   });
 });
 
-app.get('/api/notes/:id', (request, response) => {
-  const id = request.params.id;
-  const note = notes.find((note) => note.id === id);
+app.post('/api/notes', (request, response) => {
+  const body = request.body;
 
-  if (note) {
-    response.json(note);
-  } else {
-    response.status(404).end();
+  if (!body.content) {
+    return response.statusCode(400).json({ error: 'content missing' });
   }
+
+  const note = new Note({
+    content: body.content,
+    impmortant: body.important || false,
+  });
+
+  note.save().then((savedNote) => {
+    response.json(savedNote);
+  });
 });
 
-app.post('/api/notes', (request, response) => {
-  const maxId =
-    notes.length > 0 ? Math.max(...notes.map((n) => Number(n.id))) : 0;
-
-  const note = request.body;
-  note.id = String(maxId + 1);
-
-  notes = notes.concat(note);
-
-  response.json(note);
+app.get('/api/notes/:id', (request, response) => {
+  Note.findById(request.params.id).then((note) => {
+    response.json(note);
+  });
 });
 
 app.delete('/api/notes/:id', (req, res) => {
