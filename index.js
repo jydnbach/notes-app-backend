@@ -1,25 +1,10 @@
+require('dotenv').config();
 const express = require('express');
+const Note = require('./models/note');
+
 const app = express();
 // const cors = require('cors');
 // // app.use(cors());
-
-/// Mongoose
-const mongoose = require('mongoose');
-
-// DO NOT SAVE YOUR PASSWORD TO GITHUB!!
-const password = process.argv[2];
-const url = `mongodb+srv://jydndev:${password}@cluster0.t2jkd.mongodb.net/noteApp?retryWrites=true&w=majority&appName=Cluster0`;
-
-mongoose.set('strictQuery', false);
-mongoose.connect(url);
-
-const noteSchema = new mongoose.Schema({
-  content: String,
-  important: Boolean,
-});
-
-const Note = mongoose.model('Note', noteSchema);
-//
 
 app.use(express.static('dist'));
 
