@@ -3,6 +3,24 @@ const app = express();
 // const cors = require('cors');
 // // app.use(cors());
 
+/// Mongoose
+const mongoose = require('mongoose');
+
+// DO NOT SAVE YOUR PASSWORD TO GITHUB!!
+const password = process.argv[2];
+const url = `mongodb+srv://jydndev:${password}@cluster0.t2jkd.mongodb.net/noteApp?retryWrites=true&w=majority&appName=Cluster0`;
+
+mongoose.set('strictQuery', false);
+mongoose.connect(url);
+
+const noteSchema = new mongoose.Schema({
+  content: String,
+  important: Boolean,
+});
+
+const Note = mongoose.model('Note', noteSchema);
+//
+
 app.use(express.static('dist'));
 
 let notes = [
@@ -43,7 +61,10 @@ app.get('/', (request, response) => {
 });
 
 app.get('/api/notes', (request, response) => {
-  response.json(notes);
+  // response.json(notes);
+  Note.find({}).then((notes) => {
+    response.json(notes);
+  });
 });
 
 app.get('/api/notes/:id', (request, response) => {
