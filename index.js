@@ -5,14 +5,12 @@ require('dotenv').config();
 
 const Note = require('./models/note');
 
-let notes = [];
-
 app.use(express.static('dist'));
 
 const requestLogger = (request, response, next) => {
   console.log('Method:', request.method);
   console.log('Path:', request.path);
-  console.log('Method:', request.body);
+  console.log('Body:', request.body);
   console.log('---');
   next();
 };
@@ -20,8 +18,10 @@ const requestLogger = (request, response, next) => {
 const errorHandler = (error, request, response, next) => {
   console.error(error.message);
 
-  if (error.name === 'catError') {
-    return response.status(400).send({ error: 'malformed id' });
+  if (error.name === 'CastError') {
+    return response.status(400).send({ error: 'malformatted id' });
+  } else if (error.name === 'ValidationError') {
+    return response.status(400).json({ error: error.message });
   }
 
   next(error);
@@ -47,21 +47,20 @@ app.get('/api/notes', (request, response) => {
   });
 });
 
-app.post('/api/notes', (request, response) => {
+app.post('/api/notes', (request, response, next) => {
   const body = request.body;
-
-  if (!body.content) {
-    return response.statusCode(400).json({ error: 'content missing' });
-  }
 
   const note = new Note({
     content: body.content,
-    impmortant: body.important || false,
+    important: body.important || false,
   });
 
-  note.save().then((savedNote) => {
-    response.json(savedNote);
-  });
+  note
+    .save()
+    .then((savedNote) => {
+      response.json(savedNote);
+    })
+    .catch((error) => next(error));
 });
 
 app.get('/api/notes/:id', (request, response, next) => {
@@ -78,21 +77,30 @@ app.get('/api/notes/:id', (request, response, next) => {
     });
 });
 
-app.delete('/api/notes/:id', (req, res) => {
-  const id = Number(req.params.id);
-  notes = notes.filter((note) => note.id !== id);
-  res.status(204).end();
+app.delete('/api/notes/:id', (req, res, next) => {
+  Note.findByIdAndDelete(req.params.id)
+    .then((result) => res.status(204).end())
+    .catch((error) => next(error));
 });
 
-// const app = http.createServer((request, response) => {
-//   response.writeHead(200, { 'Content-Type': 'application/json' });
-//   response.end(JSON.stringify(notes));
-// });
+app.put('/api/notes/:id', (req, res, next) => {
+  const { content, important } = req.body;
+
+  Note.findByIdAndUpdate(
+    req.params.id,
+    { content, important },
+    { new: true, runValidators: true, context: 'query' }
+  )
+    .then((updatedNote) => {
+      res.json(updatedNote);
+    })
+    .catch((error) => next(error));
+});
 
 app.use(unknownEndpoint);
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
