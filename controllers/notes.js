@@ -9,7 +9,6 @@ notesRouter.get('/', async (req, res) => {
 notesRouter.get('/:id', async (req, res, next) => {
   try {
     const note = await Note.findById(req.params.id);
-
     if (note) {
       res.json(note);
     } else {
@@ -23,14 +22,17 @@ notesRouter.get('/:id', async (req, res, next) => {
 notesRouter.post('/', async (req, res, next) => {
   const body = req.body;
 
+  if (!body.content) {
+    return res.status(400).json({ error: 'Content is missing' }).end();
+  }
+
   const note = new Note({
     content: body.content,
     important: body.important || false,
   });
 
-  const savedNote = await note.save();
-
   try {
+    const savedNote = await note.save();
     res.status(201).json(savedNote);
   } catch (err) {
     next(err);
