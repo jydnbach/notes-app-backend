@@ -1,29 +1,22 @@
-const { test, after, beforeEach } = require('node:test');
-const Note = require('../models/note');
+const { test, after, beforeEach, describe } = require('node:test');
 const assert = require('node:assert');
+
 const mongoose = require('mongoose');
-const helper = require('./test_helper');
+
 const supertest = require('supertest');
 const app = require('../app');
 const api = supertest(app);
 
-// const initialNotes = [
-//   {
-//     content: 'HTML is easy',
-//     important: false,
-//   },
-//   {
-//     content: 'Browser can execute only JavaScript',
-//     important: true,
-//   },
-// ];
+const helper = require('./test_helper');
+
+const Note = require('../models/note');
 
 beforeEach(async () => {
   await Note.deleteMany({});
-  let noteObject = new Note(helper.initialNotes[0]);
-  await noteObject.save();
-  noteObject = new Note(helper.initialNotes[1]);
-  await noteObject.save();
+
+  const noteObjects = helper.initialNotes.map((note) => new Note(note));
+  const promiseArray = noteObjects.map((note) => note.save());
+  await Promise.all(promiseArray);
 });
 
 test('notes are returned as json', async () => {
