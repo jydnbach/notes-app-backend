@@ -11,16 +11,47 @@ const helper = require('./test_helper');
 
 const Note = require('../models/note');
 
-beforeEach(async () => {
-  await Note.deleteMany({});
-  await Note.insertMany(helper.initialNotes);
-});
+describe('when there are some notes saved initially', () => {
+  beforeEach(async () => {
+    await Note.deleteMany({});
+    await Note.insertMany(helper.initialNotes);
+  });
 
-test('notes are returned as json', async () => {
-  await api
-    .get('/api/notes')
-    .expect(200)
-    .expect('Content-Type', /application\/json/);
+  test('notes are returned as json', async () => {
+    await api
+      .get('/api/notes')
+      .expect(200)
+      .expect('Content-Type', /application\/json/);
+  });
+
+  test('all notes are returned', async () => {
+    const res = await api.get('/api/notes');
+
+    assert.strictEqual(res.body.length, helper.initialNotes.length);
+  });
+
+  test('a specific note is within the returned notes', async () => {
+    const res = await api.get('/api/notes');
+
+    const contents = res.body.map((r) => r.content);
+
+    assert(contents.includes('Browser can execute only JavaScript'));
+  });
+
+  describe('viewing a specific note', () => {
+    test('succeeds with a valid id', async () => {
+      const notesAtStart = await helper.notesInDb();
+
+      const noteToView = notesAtStart[0];
+
+      const resultNote = await api
+        .get(`/api/notes/${noteToView.id}`)
+        .expect(200)
+        .expect('Content-Type', /application\/json/);
+
+      assert.deepStrictEqual(resultNote.body, noteToView);
+    });
+  });
 });
 
 test('there are two notes', async () => {
