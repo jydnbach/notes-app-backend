@@ -117,11 +117,11 @@ describe('when there are some notes saved initially', () => {
   });
 });
 
-test('when there is initially one user in db', () => {
+describe('when there is initially one user in db', () => {
   beforeEach(async () => {
     await User.deleteMany({});
 
-    const passwordHash = bcrypt.hash('secret', 10);
+    const passwordHash = await bcrypt.hash('secret', 10);
     const user = new User({
       username: 'root',
       passwordHash,
@@ -146,8 +146,7 @@ test('when there is initially one user in db', () => {
       .expect('Content-Type', /application\/json/);
 
     const usersAtEnd = await helper.usersInDb();
-
-    assert.strictEqual(usersAtStart.length, usersAtEnd.length - 1);
+    assert.strictEqual(usersAtEnd.length, usersAtStart.length + 1);
 
     const usernames = usersAtEnd.map((u) => u.username);
     assert(usernames.includes(newUser.username));
@@ -157,12 +156,12 @@ test('when there is initially one user in db', () => {
     const usersAtStart = await helper.usersInDb();
 
     const newUser = {
-      username: 'jason',
+      username: 'root',
       name: 'superuser',
       password: 'secret',
     };
 
-    const result = newUser
+    const result = await api
       .post('/api/users')
       .send(newUser)
       .expect(400)
