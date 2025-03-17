@@ -1,5 +1,8 @@
-POST http://localhost:3001/api/notes Content-Type: application/json
+POST http://localhost:3001/api/notes 
+Content-Type: application/json
 
 {
-"content": "Ensure that everything still works", "important": true
+"content": "test notes & users relation 2", 
+"important": true, 
+"userId": "67d7b9e6dc0972ec3932f24d"
 }
